@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Union, Optional
 
 from deflate.lzss.circularlist import CircularList
 
@@ -6,14 +7,14 @@ _OFFSET_T = int
 _LENGTH_T = int
 
 
-_CONTENT_T = bytes | str
+_CONTENT_T = Union[bytes, str]
 
 
 @dataclass
 class EncodeResult:
-    symbol: str | int | None
-    offset: _OFFSET_T | None
-    length: _LENGTH_T | None
+    symbol: Union[str, int, None]
+    offset: Optional[_OFFSET_T]
+    length: Optional[_LENGTH_T]
 
 
 class Lzss:
@@ -82,7 +83,7 @@ class LzssChunkCompressor:
 
         return EncodeResult(symbol=None, length=length, offset=len(self.__buffer) - offset)
 
-    def __find_longest_substring_in_buffer(self, position: int) -> tuple[_LENGTH_T, _OFFSET_T] | None:
+    def __find_longest_substring_in_buffer(self, position: int) -> Optional[tuple[_LENGTH_T, _OFFSET_T]]:
         cur_length = 0
 
         result_found_index = None
@@ -98,7 +99,7 @@ class LzssChunkCompressor:
             cur_length += 1
             result_found_index = found_index
 
-            if cur_length + position == len(self.__data):
+            if cur_length >= self.__max_repeated_string_length or cur_length + position == len(self.__data):
                 break
 
         if result_found_index is None:

@@ -1,16 +1,24 @@
-from suffix_tree import Tree
+import logging
+
+from deflate.utils import read_file_by_chunks
+
+logging.basicConfig(level=logging.DEBUG)
+
+from deflate.encoder import DeflateLikeEncoder
 
 
 def main():
-    t = Tree()
-    t.add('1', 'a')
-    t.add('1', 'b')
+    WINDOW_SIZE = 32768
+    CHUNK_SIZE = 1024
 
-    print(t.find('ab'))
-    return
+    encoder = DeflateLikeEncoder(WINDOW_SIZE)
 
-    for i, p in t.find_all('a'):
-        print(p)
+    total_chunks = 0
+
+    for chunk in read_file_by_chunks('samples/CharlesDickens-OliverTwist.txt', CHUNK_SIZE):
+        encoder.encode(chunk)
+        total_chunks += 1
+        print(total_chunks)
 
 
 if __name__ == '__main__':

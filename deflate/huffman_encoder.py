@@ -1,11 +1,11 @@
 import functools
+import logging
 from typing import TypeVar
-
-import math
 
 from deflate.huffman.huffman import StaticHuffmanEncoder
 from deflate.lzss.chunk_compressor import Lzss, EncodeResult
 
+logger = logging.getLogger(__name__)
 
 T = TypeVar('T')
 
@@ -20,16 +20,19 @@ def _reverse_and_unzip_dict(dict_to_reverse: dict[T, list[T]]) -> dict[T, T]:
     return d
 
 
-class DeflateChunkEncoder:
+class DeflateHuffmanEncoder:
     def __init__(self, window_size: int):
         self.__window_size = window_size
 
     def encode(self, string: bytes):
         lzss = Lzss(window_size=self.__window_size)
         lzss_result = lzss.compress(string)
+        logger.debug('LZSS Compressed')
         lengths_and_symbols_encoder = StaticHuffmanEncoder(self.__huffman_statistics_string_based_on_lengths(lzss_result))
+        logger.debug('Statistics Length/Symbol built')
         lengths_and_symbols_codec = lengths_and_symbols_encoder.codec()
         offsets_encoder = StaticHuffmanEncoder(self.__huffman_statistics_string_based_on_offsets(lzss_result))
+        logger.debug('Statistics Offset built')
         offset_codec = offsets_encoder.codec()
 
         result = []
@@ -49,6 +52,8 @@ class DeflateChunkEncoder:
         for lzss_encoded in lzss_result:
             lzss_encoded_bits = self._encode_lzss_result(lzss_encoded, lengths_and_symbols_codec, offset_codec)
             result.append(lzss_encoded_bits)
+
+        result.append(lengths_and_symbols_codec.encode(256))
 
         return ''.join(result)
 
@@ -87,7 +92,6 @@ class DeflateChunkEncoder:
         delta_bin_code = ('{:0' + f'{length_extra_bits}' + 'b}').format(offset - min_bound_for_base_offset_code)
 
         return base_offset_huffman_code + delta_bin_code
-
 
     def __huffman_statistics_string_based_on_lengths(self, lzss_result: list[EncodeResult]) -> list[int]:
         r = [256, 286, 287]
@@ -138,7 +142,7 @@ class DeflateChunkEncoder:
         d[266] = [13, 14]
         d[267] = [15, 16]
         d[268] = [17, 18]
-        d[269] = [19, 22]
+        d[269] = list(range(19, 23))
         d[270] = list(range(23, 27))
         d[271] = list(range(27, 31))
         d[272] = list(range(31, 35))
@@ -205,8 +209,3 @@ class DeflateChunkEncoder:
     @functools.cached_property
     def __hugman_reverse_offset_table(self) -> dict[int, int]:
         return _reverse_and_unzip_dict(self.__huffman_offset_table)
-
-
-print(DeflateChunkEncoder(65536).encode(b'BanBanBanBanBanBanBanBanBan'))
-
-
