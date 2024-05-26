@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from deflate.suffix_tree.circularlist import CircularList
+from deflate.lzss.circularlist import CircularList
 
 _OFFSET_T = int
 _LENGTH_T = int

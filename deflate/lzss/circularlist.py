@@ -50,13 +50,3 @@ class CircularList(object):
     def __repr__(self):
         """Return string representation"""
         return (self._data[self.index:] + self._data[:self.index]).__repr__() + ' (' + str(len(self._data))+'/{} items)'.format(self.size)
-
-
-a = CircularList(5)
-a.append('a')
-a.append('b')
-a.append('c')
-a.append('d')
-a.append('e')
-a.append('f')
-a.append('g')

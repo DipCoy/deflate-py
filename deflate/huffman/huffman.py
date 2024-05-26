@@ -124,7 +124,3 @@ class StaticHuffmanDecoder:
         codec.codes = self.__codes
         codec.letters = self.__letters
         return codec.decode(bin_string)
-
-
-def tree_encode(tree):
-    return [len(node) for node in tree]

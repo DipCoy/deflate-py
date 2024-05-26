@@ -23,7 +23,6 @@ def _reverse_and_unzip_dict(dict_to_reverse: dict[T, list[T]]) -> dict[T, T]:
 class DeflateChunkEncoder:
     def __init__(self, window_size: int):
         self.__window_size = window_size
-        self.__bin_pow = math.ceil(math.log(window_size))
 
     def encode(self, string: bytes):
         lzss = Lzss(window_size=self.__window_size)
